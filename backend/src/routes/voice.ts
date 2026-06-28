@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Readable } from "stream";
+import OpenAI, { toFile } from "openai";
 
 export const voiceRouter = Router();
 
@@ -14,6 +15,25 @@ voiceRouter.post("/transcribe", upload.single("audio"), async (req: Request, res
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No audio file provided" });
+    }
+
+    const provider = req.body.provider || "soniox";
+
+    if (provider === "openai") {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({ error: "OPENAI_API_KEY is not configured in backend .env." });
+      }
+
+      const openai = new OpenAI({ apiKey });
+      const file = await toFile(req.file.buffer, req.file.originalname || "audio.webm", { type: req.file.mimetype });
+
+      const response = await openai.audio.transcriptions.create({
+        file: file,
+        model: "whisper-1",
+      });
+
+      return res.json({ text: response.text });
     }
 
     const apiKey = process.env.SONIOX_API_KEY;

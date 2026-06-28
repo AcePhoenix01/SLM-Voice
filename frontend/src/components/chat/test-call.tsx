@@ -174,8 +174,9 @@ export function TestCall() {
     try {
       const formData = new FormData();
       formData.append("audio", blob, "recording.webm");
+      formData.append("provider", transcriberConfig.provider);
 
-      const transcribeRes = await fetch("http://localhost:3001/api/voice/transcribe", {
+      const transcribeRes = await fetch("/api/voice/transcribe", {
         method: "POST",
         body: formData,
       });
@@ -255,11 +256,11 @@ export function TestCall() {
         return;
       }
 
-      const res = await fetch("http://localhost:3001/api/voice/synthesize", {
+      const res = await fetch("/api/voice/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text,
+          text: text,
           voice: voiceConfig.voice,
           stability: voiceConfig.stability,
         }),
@@ -303,7 +304,7 @@ export function TestCall() {
 
     try {
       // 1. Get text response from SLM
-      const chatRes = await fetch("http://localhost:3001/api/chat", {
+      const chatRes = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

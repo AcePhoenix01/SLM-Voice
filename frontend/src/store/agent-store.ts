@@ -155,7 +155,7 @@ export const useAgentStore = create<AgentStore>((set) => ({
   initAgent: async () => {
     try {
       set((state) => ({ ui: { ...state.ui, isLoading: true } }));
-      const response = await fetch("http://localhost:3001/api/agents");
+      const response = await fetch("/api/agents");
       if (response.ok) {
         const agentsData = await response.json();
         // Since we are single-tenant, we just grab the first agent if it exists
@@ -200,7 +200,7 @@ export const useAgentStore = create<AgentStore>((set) => ({
     };
 
     try {
-      const response = await fetch("http://localhost:3001/api/agents", {
+      const response = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -43,7 +43,7 @@ export interface VoiceConfig {
 // Transcriber Configuration
 // ==========================================
 
-export type TranscriberProvider = "soniox" | "browser";
+export type TranscriberProvider = "soniox" | "openai" | "browser";
 
 export interface TranscriberConfig {
   provider: TranscriberProvider;

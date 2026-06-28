@@ -119,7 +119,7 @@ export default function DashboardPage() {
   const [agentCount, setAgentCount] = useState(0);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/agents")
+    fetch("/api/agents")
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
