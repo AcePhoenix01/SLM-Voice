@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { Readable } from "stream";
 
 export const voiceRouter = Router();
 
@@ -6,8 +7,8 @@ import multer from "multer";
 import { SonioxNodeClient } from "@soniox/node";
 import fs from "fs";
 
-// Configure multer to save to a temporary folder
-const upload = multer({ dest: "uploads/" });
+// Configure multer to save in memory (necessary for serverless / Vercel)
+const upload = multer({ storage: multer.memoryStorage() });
 
 voiceRouter.post("/transcribe", upload.single("audio"), async (req: Request, res: Response) => {
   try {
@@ -17,22 +18,18 @@ voiceRouter.post("/transcribe", upload.single("audio"), async (req: Request, res
 
     const apiKey = process.env.SONIOX_API_KEY;
     if (!apiKey) {
-      fs.unlinkSync(req.file.path);
       return res.status(500).json({ error: "SONIOX_API_KEY is not configured" });
     }
 
     const client = new SonioxNodeClient({ api_key: apiKey });
     
-    // Transcribe the file synchronously
+    // Transcribe the file synchronously from the memory buffer
     // By default it auto-detects language or defaults to English
-    const result = await client.stt.transcribeFromFile(fs.createReadStream(req.file.path), {
+    const result = await client.stt.transcribeFromFile(Readable.from(req.file.buffer), {
       model: "stt-async-v5",
       wait: true,
       filename: req.file.originalname || "audio.webm",
-    });
-    
-    // Clean up temp file
-    fs.unlinkSync(req.file.path);
+    }) as any;
 
     // Log result shape for debugging
     const resultJson = result.toJSON ? result.toJSON() : result;
@@ -62,10 +59,6 @@ voiceRouter.post("/transcribe", upload.single("audio"), async (req: Request, res
     res.json({ text: transcript.trim() });
   } catch (error: any) {
     console.error("Voice Transcription Error:", error.message);
-    fs.writeFileSync("error_log.txt", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ error: "Internal server error during transcription", details: error.message });
   }
 });

@@ -24,6 +24,10 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`Voice AI Builder backend running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Voice AI Builder backend running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
