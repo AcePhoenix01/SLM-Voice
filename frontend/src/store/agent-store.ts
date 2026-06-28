@@ -83,8 +83,8 @@ const defaultAgent: Agent = {
   firstMessage:
     "Hello! Thank you for calling. How can I help you today?",
   firstMessageMode: "auto",
-  provider: "openai",
-  model: "gpt-4o",
+  provider: "google",
+  model: "gemini-2.5-flash",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   hasUnsavedChanges: false,
@@ -101,7 +101,7 @@ const defaultVoiceConfig: VoiceConfig = {
 };
 
 const defaultTranscriberConfig: TranscriberConfig = {
-  provider: "deepgram",
+  provider: "soniox",
   language: "en-US",
   streaming: true,
   autoDetect: false,

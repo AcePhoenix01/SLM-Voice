@@ -35,3 +35,4 @@ next-env.d.ts
 # User Uploads / Temp files
 **/uploads/
 **/error_log.txt
+.vercel
