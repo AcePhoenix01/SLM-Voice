@@ -14,13 +14,18 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Routes - Mount on both with and without /api prefix to support local development and Vercel routing
 app.use("/api/chat", chatRouter);
+app.use("/chat", chatRouter);
+
 app.use("/api/agents", agentsRouter);
+app.use("/agents", agentsRouter);
+
 app.use("/api/voice", voiceRouter);
+app.use("/voice", voiceRouter);
 
 // Health check
-app.get("/health", (req, res) => {
+app.get(["/api/health", "/health"], (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
