@@ -19,18 +19,21 @@ voiceRouter.post("/transcribe", upload.single("audio"), async (req: Request, res
 
     const provider = req.body.provider || "soniox";
 
-    if (provider === "openai") {
-      const apiKey = process.env.OPENAI_API_KEY;
+    if (provider === "openai" || provider === "groq") {
+      const apiKey = provider === "groq" ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY;
+      const baseURL = provider === "groq" ? "https://api.groq.com/openai/v1" : undefined;
+      const model = provider === "groq" ? "whisper-large-v3" : "whisper-1";
+
       if (!apiKey) {
-        return res.status(400).json({ error: "OPENAI_API_KEY is not configured in backend .env." });
+        return res.status(400).json({ error: `${provider.toUpperCase()}_API_KEY is not configured in backend .env.` });
       }
 
-      const openai = new OpenAI({ apiKey });
+      const openai = new OpenAI({ apiKey, baseURL });
       const file = await toFile(req.file.buffer, req.file.originalname || "audio.webm", { type: req.file.mimetype });
 
       const response = await openai.audio.transcriptions.create({
         file: file,
-        model: "whisper-1",
+        model: model,
       });
 
       return res.json({ text: response.text });

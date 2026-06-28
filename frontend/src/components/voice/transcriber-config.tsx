@@ -17,6 +17,7 @@ import type { TranscriberProvider } from "@/types/agent";
 const transcriberProviders: { value: string; label: string }[] = [
   { value: "soniox", label: "Soniox" },
   { value: "openai", label: "OpenAI Whisper" },
+  { value: "groq", label: "Groq Whisper" },
   { value: "browser", label: "Browser Native (Free)" },
 ];
 
