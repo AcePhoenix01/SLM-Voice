@@ -147,6 +147,9 @@ voiceRouter.post("/synthesize", async (req: Request, res: Response) => {
     
     if (audioStream && typeof audioStream.pipe === "function") {
       audioStream.pipe(res);
+    } else if (audioStream && typeof audioStream.getReader === "function") {
+      // Convert Web ReadableStream to Node.js Readable stream
+      Readable.fromWeb(audioStream as any).pipe(res);
     } else {
       // Fallback if the SDK returns a buffer or arrayBuffer
       const buffer = Buffer.isBuffer(audioStream) 
