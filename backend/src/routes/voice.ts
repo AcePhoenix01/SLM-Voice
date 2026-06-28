@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { Readable } from "stream";
 import OpenAI, { toFile } from "openai";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export const voiceRouter = Router();
 
@@ -113,66 +114,46 @@ voiceRouter.post("/synthesize", async (req: Request, res: Response) => {
 
     const voiceId = voiceIdMap[voice.toLowerCase()] || "EXAVITQu4vr4xnSDxMaL";
 
-    // Call ElevenLabs API
-    // Using model: eleven_turbo_v2 as requested in defaults, or eleven_multilingual_v2
-    let elevenLabsResponse = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: {
-          "Accept": "audio/mpeg",
-          "Content-Type": "application/json",
-          "xi-api-key": apiKey,
+    const elevenlabs = new ElevenLabsClient({ apiKey });
+    let audioStream: any;
+
+    try {
+      audioStream = await elevenlabs.textToSpeech.convert(voiceId, {
+        text: text,
+        modelId: "eleven_flash_v2",
+        voiceSettings: {
+          stability: stability,
+          similarityBoost: 0.75,
         },
-        body: JSON.stringify({
+      });
+    } catch (sdkError: any) {
+      if (voiceId !== "EXAVITQu4vr4xnSDxMaL") {
+        console.warn(`ElevenLabs SDK failed for voice ${voice} (${voiceId}). Falling back to Bella (EXAVITQu4vr4xnSDxMaL)...`);
+        audioStream = await elevenlabs.textToSpeech.convert("EXAVITQu4vr4xnSDxMaL", {
           text: text,
-          model_id: "eleven_turbo_v2",
-          voice_settings: {
-            stability: stability,
-            similarity_boost: 0.75,
+          modelId: "eleven_flash_v2",
+          voiceSettings: {
+            stability: 0.5,
+            similarityBoost: 0.75,
           },
-        }),
+        });
+      } else {
+        throw sdkError;
       }
-    );
-
-    // If it fails and we didn't already use the default Bella voice, fallback to Bella
-    if (!elevenLabsResponse.ok && voiceId !== "EXAVITQu4vr4xnSDxMaL") {
-      console.warn(`ElevenLabs failed for voice ${voice} (${voiceId}). Falling back to Bella (EXAVITQu4vr4xnSDxMaL)...`);
-      elevenLabsResponse = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL?output_format=mp3_44100_128`,
-        {
-          method: "POST",
-          headers: {
-            "Accept": "audio/mpeg",
-            "Content-Type": "application/json",
-            "xi-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            text: text,
-            model_id: "eleven_turbo_v2",
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75,
-            },
-          }),
-        }
-      );
-    }
-
-    if (!elevenLabsResponse.ok) {
-      const errorText = await elevenLabsResponse.text();
-      console.error("ElevenLabs API Error:", errorText);
-      return res.status(elevenLabsResponse.status).json({ error: "Failed to synthesize speech", details: errorText });
     }
 
     // Stream the audio back to the client
     res.setHeader("Content-Type", "audio/mpeg");
     
-    // Convert Web stream to Node stream
-    const arrayBuffer = await elevenLabsResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    res.send(buffer);
+    if (audioStream && typeof audioStream.pipe === "function") {
+      audioStream.pipe(res);
+    } else {
+      // Fallback if the SDK returns a buffer or arrayBuffer
+      const buffer = Buffer.isBuffer(audioStream) 
+        ? audioStream 
+        : Buffer.from(await audioStream.arrayBuffer());
+      res.send(buffer);
+    }
   } catch (error: any) {
     console.error("Voice Synthesis Error:", error.message);
     res.status(500).json({ error: "Internal server error during speech synthesis", details: error.message });
