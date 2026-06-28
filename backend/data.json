@@ -1,0 +1,72 @@
+{
+  "agents": [
+    {
+      "id": "agent-001",
+      "agent": {
+        "id": "agent-001",
+        "name": "My Voice Agent",
+        "status": "draft",
+        "systemPrompt": "You are a professional AI voice assistant. Your role is to help callers with their inquiries in a friendly, efficient, and knowledgeable manner.\n\n## Guidelines\n- Be conversational and natural\n- Keep responses concise for voice delivery\n- Ask clarifying questions when needed\n- Handle one topic at a time\n- Confirm important details before taking action",
+        "firstMessage": "Hello! Thank you for calling. How can I help you today?",
+        "firstMessageMode": "auto",
+        "provider": "openrouter",
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "createdAt": "2026-06-28T17:27:28.499Z",
+        "updatedAt": "2026-06-28T17:50:19.334Z",
+        "hasUnsavedChanges": false
+      },
+      "voiceConfig": {
+        "provider": "elevenlabs",
+        "model": "eleven_turbo_v2",
+        "voice": "Rachel",
+        "backgroundSound": "none",
+        "inputMinimumCharacters": 2,
+        "punctuationBoundary": true,
+        "stability": 0.5
+      },
+      "transcriberConfig": {
+        "provider": "deepgram",
+        "language": "en-US",
+        "streaming": true,
+        "autoDetect": false,
+        "noiseReduction": true,
+        "punctuation": true
+      },
+      "callConfig": {
+        "timeoutSeconds": 30,
+        "maxRetries": 3,
+        "timeoutAction": "hangup"
+      },
+      "postCallAnalysis": {
+        "enabled": true,
+        "analysisTypes": [
+          "sentiment",
+          "summary"
+        ],
+        "customPrompt": ""
+      },
+      "callSuccessEval": {
+        "enabled": false,
+        "criteria": [
+          {
+            "id": "1",
+            "label": "Issue resolved",
+            "enabled": true
+          },
+          {
+            "id": "2",
+            "label": "Caller satisfied",
+            "enabled": true
+          },
+          {
+            "id": "3",
+            "label": "No escalation needed",
+            "enabled": false
+          }
+        ],
+        "rubric": ""
+      },
+      "callTriggers": []
+    }
+  ]
+}
